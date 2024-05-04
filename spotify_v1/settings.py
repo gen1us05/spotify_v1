@@ -32,6 +32,7 @@ INSTALLED_APPS = [
 
     # FAMEWORKS
     'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
