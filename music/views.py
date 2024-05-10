@@ -8,6 +8,8 @@ from .models import Artist, Album, Songs
 from .serializers import ArtistSerializer, AlbumSerializer, SongsSerializer
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
+from rest_framework import filters
+
 
 class LandingPageAPIView(APIView):
     def get(self, request):
@@ -41,7 +43,12 @@ class SongSetAPIView(ModelViewSet):
     queryset = Songs.objects.all()
     serializer_class = SongsSerializer
     authentication_classes = [TokenAuthentication, ]
-    permission_classes = [IsAuthenticated, ]
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('title', 'album__title', 'album__artist__name')
+
+    # permission_classes = [IsAuthenticated, ]
+
+
 
     # def get(self, request, id):
     #
