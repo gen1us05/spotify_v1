@@ -1,6 +1,8 @@
 from django.db.migrations import serializer
+from django.db.transaction import atomic
 from django.shortcuts import render
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -42,11 +44,40 @@ class AlbumAPIViewSet(ModelViewSet):
 class SongSetAPIView(ModelViewSet):
     queryset = Songs.objects.all()
     serializer_class = SongsSerializer
-    authentication_classes = [TokenAuthentication, ]
+    # authentication_classes = [TokenAuthentication, ]
+    # permission_classes = [IsAuthenticated, ]
     filter_backends = (filters.SearchFilter, )
     search_fields = ('title', 'album__title', 'album__artist__name')
 
-    # permission_classes = [IsAuthenticated, ]
+    @action(detail=True, methods=['Post'])
+    def listen(self, request, *args, **kwargs):
+        song = self.get_object()
+        with atomic():
+            song.listened += 1
+            song.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['GET'])
+    def top(self, request, *args, **kwargs):
+        songs = self.get_queryset()
+        songs = songs.filter(status=True)
+        songs = songs.order_by('-listened')[:3]
+        serializer = SongsSerializer(songs, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['Post'])
+    def albom(self, request, *args, **kwargs):
+        song = self.get_object()
+        album = song.album
+        serializer = AlbumSerializer(album)
+        return Response(data=serializer)
+
+    @action(detail=True, methods=['Post'])
+    def artist(self, request, *args, **kwargs):
+        song = self.get_object()
+        artist = song.album.artist
+        serializer = ArtistSerializer(artist)
+        return Response(data=serializer)
 
 
 
