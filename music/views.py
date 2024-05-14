@@ -3,6 +3,7 @@ from django.db.transaction import atomic
 from django.shortcuts import render
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -45,9 +46,10 @@ class SongSetAPIView(ModelViewSet):
     queryset = Songs.objects.all()
     serializer_class = SongsSerializer
     # authentication_classes = [TokenAuthentication, ]
-    # permission_classes = [IsAuthenticated, ]
+    permission_classes = [IsAuthenticated, ]
     filter_backends = (filters.SearchFilter, )
     search_fields = ('title', 'album__title', 'album__artist__name')
+    pagination_class = LimitOffsetPagination
 
     @action(detail=True, methods=['Post'])
     def listen(self, request, *args, **kwargs):
